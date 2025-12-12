@@ -1,0 +1,3 @@
+name: gcp-bucket
+runtime: python
+description: Minimal GCP Storage Bucket template
