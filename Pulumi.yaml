@@ -1,3 +1,4 @@
-name: gcp-bucket
+name: aws-s3-bucket
 runtime: python
-description: Minimal GCP Storage Bucket template
+description: An AWS S3 Bucket plugin
+

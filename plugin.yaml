@@ -1,0 +1,264 @@
+id: aws-s3-bucket
+name: AWS S3 Bucket
+version: 1.0.0
+author: Platform Team
+description: Provisions an AWS S3 bucket with configurable encryption, versioning, public access settings, and lifecycle policies.
+category: storage
+icon: assets/icon.png
+
+# Required cloud provider
+cloud_provider: aws
+
+# Pulumi provider version (optional - defaults to 7.12.0 if not specified)
+# This is the version of the Pulumi AWS provider plugin that will be downloaded
+provider_version: "7.12.0"
+
+# Input schema (JSON Schema)
+inputs:
+  type: object
+  required:
+    - bucket_name
+    - region
+  properties:
+    bucket_name:
+      type: string
+      title: Bucket Name
+      description: Globally unique name for the S3 bucket (3-63 characters, lowercase alphanumeric and hyphens)
+      pattern: "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+      minLength: 3
+      maxLength: 63
+
+    region:
+      type: string
+      title: AWS Region
+      description: The AWS region where the bucket will be created
+      default: us-east-1
+      enum:
+        - us-east-1
+        - us-east-2
+        - us-west-1
+        - us-west-2
+        - eu-west-1
+        - eu-west-2
+        - eu-west-3
+        - eu-central-1
+        - ap-southeast-1
+        - ap-southeast-2
+        - ap-northeast-1
+        - ap-northeast-2
+        - ap-south-1
+        - sa-east-1
+        - ca-central-1
+
+    versioning_enabled:
+      type: boolean
+      title: Enable Versioning
+      description: Keep multiple versions of objects in this bucket
+      default: false
+
+    encryption:
+      type: string
+      title: Encryption Type
+      description: Server-side encryption method for objects
+      default: AES256
+      enum:
+        - AES256
+        - aws:kms
+        - aws:kms:dsse
+
+    kms_key_id:
+      type: string
+      title: KMS Key ID (Optional)
+      description: AWS KMS key ID or ARN for encryption (required if encryption is aws:kms or aws:kms:dsse)
+      pattern: "^arn:aws:kms:.*|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
+    block_public_acls:
+      type: boolean
+      title: Block Public ACLs
+      description: Block new public ACLs and uploading public objects
+      default: true
+
+    block_public_policy:
+      type: boolean
+      title: Block Public Policy
+      description: Block new public bucket policies
+      default: true
+
+    ignore_public_acls:
+      type: boolean
+      title: Ignore Public ACLs
+      description: Ignore existing public ACLs
+      default: true
+
+    restrict_public_buckets:
+      type: boolean
+      title: Restrict Public Buckets
+      description: Restrict public bucket policies
+      default: true
+
+    enable_lifecycle_rules:
+      type: boolean
+      title: Enable Lifecycle Rules
+      description: Enable lifecycle management rules
+      default: false
+
+    transition_to_ia_days:
+      type: integer
+      title: Transition to IA (Days)
+      description: Days until objects transition to Infrequent Access storage class
+      minimum: 1
+      maximum: 3650
+
+    transition_to_glacier_days:
+      type: integer
+      title: Transition to Glacier (Days)
+      description: Days until objects transition to Glacier storage class
+      minimum: 1
+      maximum: 3650
+
+    expiration_days:
+      type: integer
+      title: Expiration (Days)
+      description: Days until objects expire and are deleted
+      minimum: 1
+      maximum: 3650
+
+    enable_cors:
+      type: boolean
+      title: Enable CORS
+      description: Enable Cross-Origin Resource Sharing
+      default: false
+
+    cors_allowed_origins:
+      type: string
+      title: CORS Allowed Origins
+      description: Comma-separated list of allowed origins (e.g., "https://example.com,https://app.example.com")
+      default: "*"
+
+    cors_allowed_methods:
+      type: string
+      title: CORS Allowed Methods
+      description: Comma-separated list of allowed HTTP methods
+      default: "GET,PUT,POST,DELETE,HEAD"
+
+    cors_allowed_headers:
+      type: string
+      title: CORS Allowed Headers
+      description: Comma-separated list of allowed headers
+      default: "*"
+
+    cors_max_age_seconds:
+      type: integer
+      title: CORS Max Age (Seconds)
+      description: Maximum age for CORS preflight requests
+      default: 3000
+      minimum: 0
+
+    enable_website_hosting:
+      type: boolean
+      title: Enable Static Website Hosting
+      description: Configure bucket for static website hosting
+      default: false
+
+    index_document:
+      type: string
+      title: Index Document
+      description: Default index document (e.g., "index.html")
+      default: "index.html"
+
+    error_document:
+      type: string
+      title: Error Document
+      description: Error document (e.g., "error.html")
+      default: "error.html"
+
+    enable_logging:
+      type: boolean
+      title: Enable Access Logging
+      description: Enable server access logging
+      default: false
+
+    target_bucket_for_logging:
+      type: string
+      title: Target Bucket for Logging
+      description: Name of the bucket where logs will be stored (required if logging enabled)
+
+    log_prefix:
+      type: string
+      title: Log Prefix
+      description: Prefix for log object keys
+      default: "logs/"
+
+    tags:
+      type: string
+      title: Tags (JSON)
+      description: JSON object of tags to apply to the bucket (e.g., '{"Environment":"prod","Project":"web"}')
+      default: "{}"
+
+    force_destroy:
+      type: boolean
+      title: Force Destroy
+      description: Allow bucket to be deleted even if it contains objects (use with caution)
+      default: false
+
+# Output schema
+outputs:
+  type: object
+  properties:
+    bucket_name:
+      type: string
+      description: The name of the created S3 bucket
+    bucket_arn:
+      type: string
+      description: The ARN of the S3 bucket
+    bucket_domain_name:
+      type: string
+      description: The bucket domain name
+    bucket_regional_domain_name:
+      type: string
+      description: The bucket regional domain name
+    website_endpoint:
+      type: string
+      description: The website endpoint (if website hosting is enabled)
+    website_domain:
+      type: string
+      description: The website domain (if website hosting is enabled)
+
+# Pulumi program entrypoint
+entrypoint: __main__.py
+
+# Required permissions
+permissions:
+  - plugins:provision
+  - resources:storage:create
+
+# UI schema for form rendering
+ui_schema:
+  bucket_name:
+    ui:help: Must be globally unique, lowercase, 3-63 characters (alphanumeric and hyphens only)
+  region:
+    ui:help: Choose the AWS region closest to your users for lower latency
+  versioning_enabled:
+    ui:widget: checkbox
+  encryption:
+    ui:help: AES256 is free, aws:kms provides additional security with key management
+  block_public_acls:
+    ui:widget: checkbox
+  block_public_policy:
+    ui:widget: checkbox
+  ignore_public_acls:
+    ui:widget: checkbox
+  restrict_public_buckets:
+    ui:widget: checkbox
+  enable_lifecycle_rules:
+    ui:widget: checkbox
+  enable_cors:
+    ui:widget: checkbox
+  enable_website_hosting:
+    ui:widget: checkbox
+  enable_logging:
+    ui:widget: checkbox
+  force_destroy:
+    ui:widget: checkbox
+    ui:help: "Warning: Enabling this allows bucket deletion even with objects inside"
+
